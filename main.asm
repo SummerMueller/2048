@@ -1,9 +1,20 @@
 INCLUDE Irvine32.inc
-; test test test
+
 .data
-intGrid word 16 dup(0)
+intGrid byte 16 dup(0)
 strGrid byte 16 dup("|       ",0)
-strRep byte "|       ", "|   2   ", "|   4   ", "|   8   ", "|   16  ", "|   32  ", "|   64  ", "|  128  ", "|  256  ", "|  512  ", "|  1024 ", "|  2048 "
+strRep byte "|       ",0,
+			"|   2   ",0,
+			"|   4   ",0,
+			"|   8   ",0,
+			"|   16  ",0,
+			"|   32  ",0,
+			"|   64  ",0,
+			"|  128  ",0,
+			"|  256  ",0,
+			"|  512  ",0,
+			"|  1024 ",0,
+			"|  2048 ",0
 
 horLine byte "+-------+-------+-------+-------+",0
 verLine byte "|",0
@@ -24,8 +35,8 @@ lostMsg byte "Sorry, you ran out of moves. You lost."
 
 .code
 main PROC
+	call Randomize
 	gameLoop:
-	call printGrid
 	call newTile
 	call printGrid
 	cmp ebx, 1
@@ -61,7 +72,6 @@ newTile proc
 	je boardFull
 
 	mov eax, ebx
-	dec eax
 	call randomrange
 	mov ebp, eax
 
@@ -122,11 +132,13 @@ printGrid proc
 	call gotoxy
 
 	printCell:
+	movzx edi, byte ptr [intGrid + ebx]
+	imul edi, 9
 	push edx
-	lea edx, [strGrid + ebx]
+	lea edx, [strRep + edi]
 	call writestring
 	pop edx
-	add ebx, 9
+	inc ebx
 	dec ecx
 	cmp ecx, 0
 	jne printCell
