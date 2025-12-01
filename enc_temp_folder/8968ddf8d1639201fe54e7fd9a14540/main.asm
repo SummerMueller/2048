@@ -1,5 +1,5 @@
 INCLUDE Irvine32.inc
-; test test test
+
 .data
 intGrid word 16 dup(0)
 strGrid byte 16 dup("|       ",0)
@@ -123,7 +123,7 @@ printGrid proc
 
 	printCell:
 	push edx
-	lea edx, [strGrid + ebx]
+	lea edx, [intGrid + ebx]
 	call writestring
 	pop edx
 	add ebx, 9
