@@ -2,7 +2,7 @@ INCLUDE Irvine32.inc
 
 .data
 intGrid byte 16 dup(0)
-strGrid byte 16 dup("|       ",0)
+tempGrid byte 16 dup(0)
 strRep byte "|       ",0,
 			"|   2   ",0,
 			"|   4   ",0,
@@ -20,6 +20,9 @@ horLine byte "+-------+-------+-------+-------+",0
 verLine byte "|",0
 startRow byte 5
 startCol byte 40
+rot90CW byte 12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3
+rot180 byte 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
+rot90CCW byte 3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12
 lostMsg byte "Sorry, you ran out of moves. You lost."
 
 ;    +-------+-------+-------+-------+
@@ -39,8 +42,10 @@ main PROC
 	gameLoop:
 	call newTile
 	call printGrid
-	cmp ebx, 1
-	je gameLost
+	; todo: add check for game over or win
+	;cmp ebx, 1
+	;je gameLost
+	call getMove
 	jmp gameLoop
 
 	gameLost:
@@ -160,6 +165,211 @@ printGrid proc
 	popad
 	ret
 printGrid ENDP
+
+
+getMove proc
+	pushad
+
+	getInput:  ;loops until the input is wasd or arrowkeys
+	xor eax, eax
+	call readkey
+	;cmp al, 0
+	;je arrowKeys
+	cmp al, 119
+	je applyUp
+	cmp al, 97
+	je applyLeft
+	cmp al, 115
+	je applyRight
+	cmp al, 100
+	je applyDown
+	jmp getInput
+	;arrowKeys:
+	; call readkey
+	;cmp al, 72
+	;je applyUp
+	cmp al, 75
+	;je applyLeft
+	;cmp al, 77
+	;je applyRight
+	;cmp al, 80
+	;je applyDown
+	;jmp getInput
+
+	applyUp:
+	mov edx, 3
+	call rotate
+	call moveLeft
+	mov edx, 1
+	call rotate
+	jmp doneMove
+
+	applyLeft:
+	call moveLeft
+	jmp doneMove
+
+	applyRight:
+	mov edx, 1
+	call rotate
+	call moveLeft
+	mov edx, 3
+	call rotate
+	jmp doneMove
+
+	applyDown:
+	mov edx, 2
+	call rotate
+	call moveLeft
+	call rotate
+	jmp doneMove
+
+	doneMove:
+	popad
+	ret
+getMove endp
+
+
+moveLeft proc
+	pushad
+
+	mov ecx, 0
+
+	rowLoop:
+	xor edx, edx
+	mov ebx, ecx
+	shl ebx, 2
+	mov esi, offset intGrid
+	mov edi, esi
+	add edi, ebx
+
+	xor eax, eax
+	mov ebx, 0
+
+	firstShift:
+	cmp ebx, 4
+	jge shiftDOne
+	mov al, [edi + ebx]
+	cmp al, 0
+	je skipShift
+	mov [edi + edx], al
+	inc edx
+	skipShift:
+	inc ebx
+	jmp firstShift
+	shiftDone:
+	mov ebx, edx
+	fillZero:
+	cmp ebx, 4
+	jge doneZero
+	mov byte ptr [edi + ebx], 0
+	inc ebx
+	jmp fillZero
+	doneZero:
+	mov ebx, 0
+
+	mergeLoop:
+	cmp ebx, 3
+	jge mergeDone
+	mov al, [edi + ebx]
+	cmp al, 0
+	je skipMerge
+	mov ah, [edi + ebx + 1]
+	cmp al, ah
+	jne skipMerge
+	inc al
+	mov [edi + ebx], al
+	mov byte ptr [edi + ebx + 1], 0
+	inc ebx
+	skipMerge:
+	inc ebx
+	jmp mergeLoop
+	mergeDone:
+	xor edx, edx
+	mov ebx, 0
+
+	secondShift:
+	cmp ebx, 4
+	jge doneShift2
+	mov al, [edi + ebx]
+	cmp al, 0
+	je skipShift2
+	mov [edi + edx], al
+	inc edx
+	skipShift2:
+	inc ebx
+	jmp secondShift
+	doneShift2:
+	mov ebx, edx
+	fillZero2:
+	cmp ebx, 4
+	jge doneRow
+	mov byte ptr [edi + ebx], 0
+	inc ebx
+	jmp fillZero2
+
+	doneRow:
+	inc ecx
+	cmp ecx, 4
+	jl rowLoop
+
+	popad
+	ret
+moveLeft endp
+
+
+rotate proc
+	pushad
+	;edx will contain the number to indicate which rotation
+	;1 is 90 CW, 2 is 180, and 3 is 90 CWW
+
+	mov esi, offset intGrid
+	mov edi, offset tempGrid
+	mov ecx, 0
+
+	rotateLoop:
+	cmp ecx, 16
+	jge doneRotate
+
+	cmp edx, 1
+	je rot1
+	cmp edx, 2
+	je rot2
+	cmp edx, 3
+	je rot3
+	jmp doneCopy
+
+	rot1:
+	movzx ebx, byte ptr [rot90CW + ecx]
+	jmp cont
+
+	rot2:
+	movzx ebx, byte ptr [rot180 +ecx]
+	jmp cont
+
+	rot3:
+	movzx ebx, byte ptr [rot90CCW + ecx]
+	
+	cont:
+	mov al, [esi + ebx]
+	mov [edi + ecx], al
+	skipMap:
+	inc ecx
+	jmp rotateLoop
+	doneRotate:
+
+	mov ecx, 0
+	copyBack:
+	cmp ecx, 16
+	jge doneCopy
+	mov al, [edi + ecx]
+	mov [esi + ecx], al
+	inc ecx
+	jmp copyBack
+
+	doneCopy:
+	popad
+	ret
+rotate endp
 
 
 END main
