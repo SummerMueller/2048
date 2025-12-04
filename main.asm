@@ -21,10 +21,12 @@ horLine byte "+-------+-------+-------+-------+",0
 verLine byte "|",0
 startRow byte 5
 startCol byte 40
+endRow byte 15
+endCol byte 20
 rot90CW byte 12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3
 rot180 byte 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
 rot90CCW byte 3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12
-lostMsg byte "Sorry, you ran out of moves. You lost."
+lostMsg byte "Sorry, you ran out of moves. You lost. Press the space bar to play again."
 
 ;    +-------+-------+-------+-------+
 ;    |   0   |   0   |  2048 |   0   |
@@ -40,6 +42,8 @@ lostMsg byte "Sorry, you ran out of moves. You lost."
 .code
 main PROC
 	call Randomize
+	restart:
+	call clearGrid
 	gameLoop:
 	call newTile
 	call printGrid
@@ -51,17 +55,37 @@ main PROC
 	jmp gameLoop
 
 	gameLost:
-	inc dh
-	inc dh
+	mov dh, [endRow]
+	mov dl, [endCol]
 	call gotoxy
-	push edx
 	mov edx, offset lostMsg
 	call writestring
-	pop edx
+	
+	restartLoop:
+	call readchar
+	cmp al, 20h
+	je restart
+	jmp restartLoop
 
 	endprogram:
 	exit
 main ENDP
+
+
+clearGrid proc
+	pushad
+
+	mov esi, offset intGrid
+	mov ecx, 16
+
+	clearCell:
+	mov byte ptr [esi], 0
+	inc esi
+	loop clearCell
+
+	popad
+	ret
+clearGrid endp
 
 
 newTile proc
@@ -213,7 +237,7 @@ checkGameOver proc
 	mov edi, edx
 	rowLoopV:
 	mov al, [esi + edi]
-	mov bl, [esi + edi + 1]
+	mov bl, [esi + edi + 4]
 	cmp al, bl
 	je gameNotOver
 	add edi, 4

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35215.0	    12/04/25 13:35:01
+Microsoft (R) Macro Assembler Version 14.44.35215.0	    12/04/25 13:53:05
 main.asm						     Page 1 - 1
 
 
@@ -75,26 +75,35 @@ main.asm						     Page 1 - 1
  000000B7 7C 00			verLine byte "|",0
  000000B9 05			startRow byte 5
  000000BA 28			startCol byte 40
- 000000BB 0C 08 04 00 0D	rot90CW byte 12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3
+ 000000BB 0F			endRow byte 15
+ 000000BC 14			endCol byte 20
+ 000000BD 0C 08 04 00 0D	rot90CW byte 12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3
 	   09 05 01 0E 0A
 	   06 02 0F 0B 07
 	   03
- 000000CB 0F 0E 0D 0C 0B	rot180 byte 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
+ 000000CD 0F 0E 0D 0C 0B	rot180 byte 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
 	   0A 09 08 07 06
 	   05 04 03 02 01
 	   00
- 000000DB 03 07 0B 0F 02	rot90CCW byte 3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12
+ 000000DD 03 07 0B 0F 02	rot90CCW byte 3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12
 	   06 0A 0E 01 05
 	   09 0D 00 04 08
 	   0C
- 000000EB 53 6F 72 72 79	lostMsg byte "Sorry, you ran out of moves. You lost."
+ 000000ED 53 6F 72 72 79	lostMsg byte "Sorry, you ran out of moves. You lost. Press the space bar to play again."
 	   2C 20 79 6F 75
 	   20 72 61 6E 20
 	   6F 75 74 20 6F
 	   66 20 6D 6F 76
 	   65 73 2E 20 59
 	   6F 75 20 6C 6F
-	   73 74 2E
+	   73 74 2E 20 50
+	   72 65 73 73 20
+	   74 68 65 20 73
+	   70 61 63 65 20
+	   62 61 72 20 74
+	   6F 20 70 6C 61
+	   79 20 61 67 61
+	   69 6E 2E
 
 				;    +-------+-------+-------+-------+
 				;    |   0   |   0   |  2048 |   0   |
@@ -110,403 +119,425 @@ main.asm						     Page 1 - 1
  00000000			.code
  00000000			main PROC
  00000000  E8 00000000 E		call Randomize
- 00000005				gameLoop:
- 00000005  E8 00000034			call newTile
- 0000000A  E8 0000008D			call printGrid
- 0000000F  33 DB			xor ebx, ebx
- 00000011  E8 00000105			call checkGameOver
- 00000016  83 FB 01			cmp ebx, 1
- 00000019  74 07			je gameLost
- 0000001B  E8 00000167			call getMove
- 00000020  EB E3			jmp gameLoop
+ 00000005				restart:
+ 00000005  E8 0000004A			call clearGrid
+ 0000000A				gameLoop:
+ 0000000A  E8 00000058			call newTile
+ 0000000F  E8 000000B1			call printGrid
+ 00000014  33 DB			xor ebx, ebx
+ 00000016  E8 00000129			call checkGameOver
+ 0000001B  83 FB 01			cmp ebx, 1
+ 0000001E  74 07			je gameLost
+ 00000020  E8 0000018B			call getMove
+ 00000025  EB E3			jmp gameLoop
 
- 00000022				gameLost:
- 00000022  FE C6			inc dh
- 00000024  FE C6			inc dh
- 00000026  E8 00000000 E		call gotoxy
- 0000002B  52				push edx
- 0000002C  BA 000000EB R		mov edx, offset lostMsg
- 00000031  E8 00000000 E		call writestring
- 00000036  5A				pop edx
+ 00000027				gameLost:
+ 00000027  8A 35 000000BB R		mov dh, [endRow]
+ 0000002D  8A 15 000000BC R		mov dl, [endCol]
+ 00000033  E8 00000000 E		call gotoxy
+ 00000038  BA 000000ED R		mov edx, offset lostMsg
+ 0000003D  E8 00000000 E		call writestring
+					
+ 00000042				restartLoop:
+ 00000042  E8 00000000 E		call readchar
+ 00000047  3C 20			cmp al, 20h
+ 00000049  74 BA			je restart
+ 0000004B  EB F5			jmp restartLoop
 
- 00000037				endprogram:
+ 0000004D				endprogram:
 					exit
- 00000037  6A 00	   *	    push   +000000000h
- 00000039  E8 00000000 E   *	    call   ExitProcess
- 0000003E			main ENDP
+ 0000004D  6A 00	   *	    push   +000000000h
+ 0000004F  E8 00000000 E   *	    call   ExitProcess
+ 00000054			main ENDP
 
 
- 0000003E			newTile proc
- 0000003E  60				pushad
+ 00000054			clearGrid proc
+ 00000054  60				pushad
+
+ 00000055  BE 00000000 R		mov esi, offset intGrid
+ 0000005A  B9 00000010			mov ecx, 16
+
+ 0000005F				clearCell:
+ 0000005F  C6 06 00			mov byte ptr [esi], 0
+ 00000062  46				inc esi
+ 00000063  E2 FA			loop clearCell
+
+ 00000065  61				popad
+ 00000066  C3				ret
+ 00000067			clearGrid endp
+
+
+ 00000067			newTile proc
+ 00000067  60				pushad
 					
- 0000003F  BE 00000000 R		mov esi, offset intGrid
- 00000044  B9 00000010			mov ecx, 16
- 00000049  33 DB			xor ebx, ebx
- 0000004B  33 FF			xor edi, edi
+ 00000068  BE 00000000 R		mov esi, offset intGrid
+ 0000006D  B9 00000010			mov ecx, 16
+ 00000072  33 DB			xor ebx, ebx
+ 00000074  33 FF			xor edi, edi
 
- 0000004D				countEmpty:
- 0000004D  8A 04 3E			mov al, [esi + edi]
- 00000050  3C 00			cmp al, 0
- 00000052  75 01			jne notEmpty
- 00000054  43				inc ebx
- 00000055				notEmpty:
- 00000055  47				inc edi
- 00000056  E2 F5			loop countEmpty
+ 00000076				countEmpty:
+ 00000076  8A 04 3E			mov al, [esi + edi]
+ 00000079  3C 00			cmp al, 0
+ 0000007B  75 01			jne notEmpty
+ 0000007D  43				inc ebx
+ 0000007E				notEmpty:
+ 0000007E  47				inc edi
+ 0000007F  E2 F5			loop countEmpty
 
- 00000058  83 FB 00			cmp ebx, 0
- 0000005B  74 38			je boardFull
+ 00000081  83 FB 00			cmp ebx, 0
+ 00000084  74 38			je boardFull
 
- 0000005D  8B C3			mov eax, ebx
- 0000005F  E8 00000000 E		call randomrange
- 00000064  8B E8			mov ebp, eax
+ 00000086  8B C3			mov eax, ebx
+ 00000088  E8 00000000 E		call randomrange
+ 0000008D  8B E8			mov ebp, eax
 
- 00000066  33 FF			xor edi, edi
- 00000068  33 C0			xor eax, eax
- 0000006A				findEmpty:
- 0000006A  8A 14 3E			mov dl, [esi + edi]
- 0000006D  80 FA 00			cmp dl, 0
- 00000070  75 05			jne skipCell
- 00000072  3B C5			cmp eax, ebp
- 00000074  74 04			je placeTile
- 00000076  40				inc eax
- 00000077				skipCell:
- 00000077  47				inc edi
- 00000078  EB F0			jmp findEmpty
+ 0000008F  33 FF			xor edi, edi
+ 00000091  33 C0			xor eax, eax
+ 00000093				findEmpty:
+ 00000093  8A 14 3E			mov dl, [esi + edi]
+ 00000096  80 FA 00			cmp dl, 0
+ 00000099  75 05			jne skipCell
+ 0000009B  3B C5			cmp eax, ebp
+ 0000009D  74 04			je placeTile
+ 0000009F  40				inc eax
+ 000000A0				skipCell:
+ 000000A0  47				inc edi
+ 000000A1  EB F0			jmp findEmpty
 
- 0000007A				placeTile:
- 0000007A  B8 00000004			mov eax, 4
- 0000007F  E8 00000000 E		call randomrange
- 00000084  83 F8 03			cmp eax, 3
- 00000087  74 04			je makeFour
- 00000089  B0 01			mov al, 1
- 0000008B  EB 02			jmp storeTile
- 0000008D				makeFour:
- 0000008D  B0 02			mov al, 2
+ 000000A3				placeTile:
+ 000000A3  B8 00000004			mov eax, 4
+ 000000A8  E8 00000000 E		call randomrange
+ 000000AD  83 F8 03			cmp eax, 3
+ 000000B0  74 04			je makeFour
+ 000000B2  B0 01			mov al, 1
+ 000000B4  EB 02			jmp storeTile
+ 000000B6				makeFour:
+ 000000B6  B0 02			mov al, 2
 
- 0000008F				storeTile:
- 0000008F  88 04 3E			mov [esi + edi], al
- 00000092  61				popad
- 00000093  EB 06			jmp done
+ 000000B8				storeTile:
+ 000000B8  88 04 3E			mov [esi + edi], al
+ 000000BB  61				popad
+ 000000BC  EB 06			jmp done
 
- 00000095				boardFull:
- 00000095  61				popad
- 00000096  BB 00000001			mov ebx, 1
+ 000000BE				boardFull:
+ 000000BE  61				popad
+ 000000BF  BB 00000001			mov ebx, 1
 
- 0000009B				done:
- 0000009B  C3				ret
- 0000009C			newTile ENDP
+ 000000C4				done:
+ 000000C4  C3				ret
+ 000000C5			newTile ENDP
 
 
- 0000009C			printGrid proc
- 0000009C  60				pushad
+ 000000C5			printGrid proc
+ 000000C5  60				pushad
 					
- 0000009D  E8 00000000 E		call clrscr
- 000000A2  8A 35 000000B9 R		mov dh, [startRow]
- 000000A8  8A 15 000000BA R		mov dl, [startCol]
- 000000AE  B8 00000004			mov eax, 4   ;keeps track of the outer loop
- 000000B3  33 DB			xor ebx, ebx   ;keeps track of the array index
+ 000000C6  E8 00000000 E		call clrscr
+ 000000CB  8A 35 000000B9 R		mov dh, [startRow]
+ 000000D1  8A 15 000000BA R		mov dl, [startCol]
+ 000000D7  B8 00000004			mov eax, 4   ;keeps track of the outer loop
+ 000000DC  33 DB			xor ebx, ebx   ;keeps track of the array index
 					
- 000000B5				printRow:
- 000000B5  E8 00000000 E		call gotoxy
- 000000BA  52				push edx
- 000000BB  BA 00000095 R		mov edx, offset horLine
- 000000C0  E8 00000000 E		call writestring
- 000000C5  5A				pop edx
- 000000C6  FE C6			inc dh
- 000000C8  B9 00000004			mov ecx, 4  ;keeps track of the inner loop
- 000000CD  E8 00000000 E		call gotoxy
+ 000000DE				printRow:
+ 000000DE  E8 00000000 E		call gotoxy
+ 000000E3  52				push edx
+ 000000E4  BA 00000095 R		mov edx, offset horLine
+ 000000E9  E8 00000000 E		call writestring
+ 000000EE  5A				pop edx
+ 000000EF  FE C6			inc dh
+ 000000F1  B9 00000004			mov ecx, 4  ;keeps track of the inner loop
+ 000000F6  E8 00000000 E		call gotoxy
 
- 000000D2				printCell:
- 000000D2  0F B6 BB			movzx edi, byte ptr [intGrid + ebx]
+ 000000FB				printCell:
+ 000000FB  0F B6 BB			movzx edi, byte ptr [intGrid + ebx]
 	   00000000 R
- 000000D9  6B FF 09			imul edi, 9
- 000000DC  52				push edx
- 000000DD  8D 97 00000020 R		lea edx, [strRep + edi]
- 000000E3  E8 00000000 E		call writestring
- 000000E8  5A				pop edx
- 000000E9  43				inc ebx
- 000000EA  49				dec ecx
- 000000EB  83 F9 00			cmp ecx, 0
- 000000EE  75 E2			jne printCell
+ 00000102  6B FF 09			imul edi, 9
+ 00000105  52				push edx
+ 00000106  8D 97 00000020 R		lea edx, [strRep + edi]
+ 0000010C  E8 00000000 E		call writestring
+ 00000111  5A				pop edx
+ 00000112  43				inc ebx
+ 00000113  49				dec ecx
+ 00000114  83 F9 00			cmp ecx, 0
+ 00000117  75 E2			jne printCell
 
- 000000F0  52				push edx
- 000000F1  BA 000000B7 R		mov edx, offset verLine
- 000000F6  E8 00000000 E		call writestring
- 000000FB  5A				pop edx
- 000000FC  FE C6			inc dh
- 000000FE  8A 15 000000BA R		mov dl, [startCol]
- 00000104  48				dec eax
- 00000105  83 F8 00			cmp eax, 0
- 00000108  75 AB			jne printRow
+ 00000119  52				push edx
+ 0000011A  BA 000000B7 R		mov edx, offset verLine
+ 0000011F  E8 00000000 E		call writestring
+ 00000124  5A				pop edx
+ 00000125  FE C6			inc dh
+ 00000127  8A 15 000000BA R		mov dl, [startCol]
+ 0000012D  48				dec eax
+ 0000012E  83 F8 00			cmp eax, 0
+ 00000131  75 AB			jne printRow
 
- 0000010A  E8 00000000 E		call gotoxy
- 0000010F  BA 00000095 R		mov edx, offset horLine
- 00000114  E8 00000000 E		call writestring
+ 00000133  E8 00000000 E		call gotoxy
+ 00000138  BA 00000095 R		mov edx, offset horLine
+ 0000013D  E8 00000000 E		call writestring
 
- 00000119  61				popad
- 0000011A  C3				ret
- 0000011B			printGrid endp
+ 00000142  61				popad
+ 00000143  C3				ret
+ 00000144			printGrid endp
 
 
- 0000011B			checkGameOver proc
- 0000011B  60				pushad
+ 00000144			checkGameOver proc
+ 00000144  60				pushad
 
- 0000011C  BE 00000000 R		mov esi, offset intGrid
- 00000121  B9 00000010			mov ecx, 16
- 00000126  33 FF			xor edi, edi
+ 00000145  BE 00000000 R		mov esi, offset intGrid
+ 0000014A  B9 00000010			mov ecx, 16
+ 0000014F  33 FF			xor edi, edi
 
 					;checks if the grid has any open cells
- 00000128				checkEmpty:
- 00000128  8A 04 3E			mov al, [esi + edi]
- 0000012B  3C 00			cmp al, 0
- 0000012D  74 4F			je gameNotOver
- 0000012F  47				inc edi
- 00000130  E2 F6			loop checkEmpty
+ 00000151				checkEmpty:
+ 00000151  8A 04 3E			mov al, [esi + edi]
+ 00000154  3C 00			cmp al, 0
+ 00000156  74 4F			je gameNotOver
+ 00000158  47				inc edi
+ 00000159  E2 F6			loop checkEmpty
 
 					;checks if horizontal merges can be made
- 00000132  BA 00000000			mov edx, 0
- 00000137				rowLoopH:
- 00000137  B9 00000003			mov ecx, 3
- 0000013C  8B FA			mov edi, edx
- 0000013E				colLoopH:
- 0000013E  8A 04 3E			mov al, [esi + edi]
- 00000141  8A 5C 3E 01			mov bl, [esi + edi + 1]
- 00000145  3A C3			cmp al, bl
- 00000147  74 35			je gameNotOver
- 00000149  47				inc edi
- 0000014A  E2 F2			loop ColLoopH
- 0000014C  83 C2 04			add edx, 4
- 0000014F  83 FA 10			cmp edx, 16
- 00000152  75 E3			jne rowLoopH
+ 0000015B  BA 00000000			mov edx, 0
+ 00000160				rowLoopH:
+ 00000160  B9 00000003			mov ecx, 3
+ 00000165  8B FA			mov edi, edx
+ 00000167				colLoopH:
+ 00000167  8A 04 3E			mov al, [esi + edi]
+ 0000016A  8A 5C 3E 01			mov bl, [esi + edi + 1]
+ 0000016E  3A C3			cmp al, bl
+ 00000170  74 35			je gameNotOver
+ 00000172  47				inc edi
+ 00000173  E2 F2			loop ColLoopH
+ 00000175  83 C2 04			add edx, 4
+ 00000178  83 FA 10			cmp edx, 16
+ 0000017B  75 E3			jne rowLoopH
 
 					;checks if vertical merges can be made
- 00000154  BA 00000000			mov edx, 0
- 00000159				colLoopV:
- 00000159  B9 00000003			mov ecx, 3
- 0000015E  8B FA			mov edi, edx
- 00000160				rowLoopV:
- 00000160  8A 04 3E			mov al, [esi + edi]
- 00000163  8A 5C 3E 01			mov bl, [esi + edi + 1]
- 00000167  3A C3			cmp al, bl
- 00000169  74 13			je gameNotOver
- 0000016B  83 C7 04			add edi, 4
- 0000016E  E2 F0			loop rowLoopV
- 00000170  42				inc edx
- 00000171  83 FA 04			cmp edx, 4
- 00000174  75 E3			jne colLoopV
+ 0000017D  BA 00000000			mov edx, 0
+ 00000182				colLoopV:
+ 00000182  B9 00000003			mov ecx, 3
+ 00000187  8B FA			mov edi, edx
+ 00000189				rowLoopV:
+ 00000189  8A 04 3E			mov al, [esi + edi]
+ 0000018C  8A 5C 3E 04			mov bl, [esi + edi + 4]
+ 00000190  3A C3			cmp al, bl
+ 00000192  74 13			je gameNotOver
+ 00000194  83 C7 04			add edi, 4
+ 00000197  E2 F0			loop rowLoopV
+ 00000199  42				inc edx
+ 0000019A  83 FA 04			cmp edx, 4
+ 0000019D  75 E3			jne colLoopV
 
- 00000176				gameOver:
- 00000176  61				popad
- 00000177  BB 00000001			mov ebx, 1
- 0000017C  EB 08			jmp back
+ 0000019F				gameOver:
+ 0000019F  61				popad
+ 000001A0  BB 00000001			mov ebx, 1
+ 000001A5  EB 08			jmp back
 
- 0000017E				gameNotOver:
- 0000017E  61				popad 
- 0000017F  BB 00000000			mov ebx, 0
- 00000184  EB 00			jmp back
+ 000001A7				gameNotOver:
+ 000001A7  61				popad 
+ 000001A8  BB 00000000			mov ebx, 0
+ 000001AD  EB 00			jmp back
 
- 00000186				back:
- 00000186  C3				ret
- 00000187			checkGameOver endp
-
-
- 00000187			getMove proc
- 00000187  60				pushad
-
- 00000188				getInput:  ;loops until the input is wasd or arrowkeys
- 00000188  33 C0			xor eax, eax
- 0000018A  E8 00000000 E		call readchar
- 0000018F  3C 77			cmp al, 119
- 00000191  74 0E			je applyUp
- 00000193  3C 61			cmp al, 97
- 00000195  74 25			je applyLeft
- 00000197  3C 73			cmp al, 115
- 00000199  74 28			je applyRight
- 0000019B  3C 64			cmp al, 100
- 0000019D  74 3F			je applyDown
- 0000019F  EB E7			jmp getInput
-
- 000001A1				applyUp:
- 000001A1  BA 00000003			mov edx, 3
- 000001A6  E8 000000E4			call rotate
- 000001AB  E8 00000046			call moveLeft
- 000001B0  BA 00000001			mov edx, 1
- 000001B5  E8 000000D5			call rotate
- 000001BA  EB 38			jmp doneMove
-
- 000001BC				applyLeft:
- 000001BC  E8 00000035			call moveLeft
- 000001C1  EB 31			jmp doneMove
-
- 000001C3				applyRight:
- 000001C3  BA 00000001			mov edx, 1
- 000001C8  E8 000000C2			call rotate
- 000001CD  E8 00000024			call moveLeft
- 000001D2  BA 00000003			mov edx, 3
- 000001D7  E8 000000B3			call rotate
- 000001DC  EB 16			jmp doneMove
-
- 000001DE				applyDown:
- 000001DE  BA 00000002			mov edx, 2
- 000001E3  E8 000000A7			call rotate
- 000001E8  E8 00000009			call moveLeft
- 000001ED  E8 0000009D			call rotate
- 000001F2  EB 00			jmp doneMove
-
- 000001F4				doneMove:
- 000001F4  61				popad
- 000001F5  C3				ret
- 000001F6			getMove endp
+ 000001AF				back:
+ 000001AF  C3				ret
+ 000001B0			checkGameOver endp
 
 
- 000001F6			moveLeft proc
- 000001F6  60				pushad
+ 000001B0			getMove proc
+ 000001B0  60				pushad
 
- 000001F7  B9 00000000			mov ecx, 0
+ 000001B1				getInput:  ;loops until the input is wasd or arrowkeys
+ 000001B1  33 C0			xor eax, eax
+ 000001B3  E8 00000000 E		call readchar
+ 000001B8  3C 77			cmp al, 119
+ 000001BA  74 0E			je applyUp
+ 000001BC  3C 61			cmp al, 97
+ 000001BE  74 25			je applyLeft
+ 000001C0  3C 73			cmp al, 115
+ 000001C2  74 28			je applyRight
+ 000001C4  3C 64			cmp al, 100
+ 000001C6  74 3F			je applyDown
+ 000001C8  EB E7			jmp getInput
 
- 000001FC				rowLoop:
- 000001FC  33 D2			xor edx, edx
- 000001FE  8B D9			mov ebx, ecx
- 00000200  C1 E3 02			shl ebx, 2
- 00000203  BE 00000000 R		mov esi, offset intGrid
- 00000208  8B FE			mov edi, esi
- 0000020A  03 FB			add edi, ebx
+ 000001CA				applyUp:
+ 000001CA  BA 00000003			mov edx, 3
+ 000001CF  E8 000000E4			call rotate
+ 000001D4  E8 00000046			call moveLeft
+ 000001D9  BA 00000001			mov edx, 1
+ 000001DE  E8 000000D5			call rotate
+ 000001E3  EB 38			jmp doneMove
 
- 0000020C  33 C0			xor eax, eax
- 0000020E  BB 00000000			mov ebx, 0
+ 000001E5				applyLeft:
+ 000001E5  E8 00000035			call moveLeft
+ 000001EA  EB 31			jmp doneMove
 
- 00000213				firstShift:
- 00000213  83 FB 04			cmp ebx, 4
- 00000216  7D 0E			jge shiftDOne
- 00000218  8A 04 1F			mov al, [edi + ebx]
- 0000021B  3C 00			cmp al, 0
- 0000021D  74 04			je skipShift
- 0000021F  88 04 17			mov [edi + edx], al
- 00000222  42				inc edx
- 00000223				skipShift:
- 00000223  43				inc ebx
- 00000224  EB ED			jmp firstShift
- 00000226				shiftDone:
- 00000226  8B DA			mov ebx, edx
- 00000228				fillZero:
- 00000228  83 FB 04			cmp ebx, 4
- 0000022B  7D 07			jge doneZero
- 0000022D  C6 04 1F 00			mov byte ptr [edi + ebx], 0
- 00000231  43				inc ebx
- 00000232  EB F4			jmp fillZero
- 00000234				doneZero:
- 00000234  BB 00000000			mov ebx, 0
+ 000001EC				applyRight:
+ 000001EC  BA 00000001			mov edx, 1
+ 000001F1  E8 000000C2			call rotate
+ 000001F6  E8 00000024			call moveLeft
+ 000001FB  BA 00000003			mov edx, 3
+ 00000200  E8 000000B3			call rotate
+ 00000205  EB 16			jmp doneMove
 
- 00000239				mergeLoop:
- 00000239  83 FB 03			cmp ebx, 3
- 0000023C  7D 1D			jge mergeDone
- 0000023E  8A 04 1F			mov al, [edi + ebx]
- 00000241  3C 00			cmp al, 0
- 00000243  74 13			je skipMerge
- 00000245  8A 64 1F 01			mov ah, [edi + ebx + 1]
- 00000249  3A C4			cmp al, ah
- 0000024B  75 0B			jne skipMerge
- 0000024D  FE C0			inc al
- 0000024F  88 04 1F			mov [edi + ebx], al
- 00000252  C6 44 1F 01 00		mov byte ptr [edi + ebx + 1], 0
- 00000257  43				inc ebx
- 00000258				skipMerge:
- 00000258  43				inc ebx
- 00000259  EB DE			jmp mergeLoop
- 0000025B				mergeDone:
- 0000025B  33 D2			xor edx, edx
+ 00000207				applyDown:
+ 00000207  BA 00000002			mov edx, 2
+ 0000020C  E8 000000A7			call rotate
+ 00000211  E8 00000009			call moveLeft
+ 00000216  E8 0000009D			call rotate
+ 0000021B  EB 00			jmp doneMove
+
+ 0000021D				doneMove:
+ 0000021D  61				popad
+ 0000021E  C3				ret
+ 0000021F			getMove endp
+
+
+ 0000021F			moveLeft proc
+ 0000021F  60				pushad
+
+ 00000220  B9 00000000			mov ecx, 0
+
+ 00000225				rowLoop:
+ 00000225  33 D2			xor edx, edx
+ 00000227  8B D9			mov ebx, ecx
+ 00000229  C1 E3 02			shl ebx, 2
+ 0000022C  BE 00000000 R		mov esi, offset intGrid
+ 00000231  8B FE			mov edi, esi
+ 00000233  03 FB			add edi, ebx
+
+ 00000235  33 C0			xor eax, eax
+ 00000237  BB 00000000			mov ebx, 0
+
+ 0000023C				firstShift:
+ 0000023C  83 FB 04			cmp ebx, 4
+ 0000023F  7D 0E			jge shiftDOne
+ 00000241  8A 04 1F			mov al, [edi + ebx]
+ 00000244  3C 00			cmp al, 0
+ 00000246  74 04			je skipShift
+ 00000248  88 04 17			mov [edi + edx], al
+ 0000024B  42				inc edx
+ 0000024C				skipShift:
+ 0000024C  43				inc ebx
+ 0000024D  EB ED			jmp firstShift
+ 0000024F				shiftDone:
+ 0000024F  8B DA			mov ebx, edx
+ 00000251				fillZero:
+ 00000251  83 FB 04			cmp ebx, 4
+ 00000254  7D 07			jge doneZero
+ 00000256  C6 04 1F 00			mov byte ptr [edi + ebx], 0
+ 0000025A  43				inc ebx
+ 0000025B  EB F4			jmp fillZero
+ 0000025D				doneZero:
  0000025D  BB 00000000			mov ebx, 0
 
- 00000262				secondShift:
- 00000262  83 FB 04			cmp ebx, 4
- 00000265  7D 0E			jge doneShift2
+ 00000262				mergeLoop:
+ 00000262  83 FB 03			cmp ebx, 3
+ 00000265  7D 1D			jge mergeDone
  00000267  8A 04 1F			mov al, [edi + ebx]
  0000026A  3C 00			cmp al, 0
- 0000026C  74 04			je skipShift2
- 0000026E  88 04 17			mov [edi + edx], al
- 00000271  42				inc edx
- 00000272				skipShift2:
- 00000272  43				inc ebx
- 00000273  EB ED			jmp secondShift
- 00000275				doneShift2:
- 00000275  8B DA			mov ebx, edx
- 00000277				fillZero2:
- 00000277  83 FB 04			cmp ebx, 4
- 0000027A  7D 07			jge doneRow
- 0000027C  C6 04 1F 00			mov byte ptr [edi + ebx], 0
+ 0000026C  74 13			je skipMerge
+ 0000026E  8A 64 1F 01			mov ah, [edi + ebx + 1]
+ 00000272  3A C4			cmp al, ah
+ 00000274  75 0B			jne skipMerge
+ 00000276  FE C0			inc al
+ 00000278  88 04 1F			mov [edi + ebx], al
+ 0000027B  C6 44 1F 01 00		mov byte ptr [edi + ebx + 1], 0
  00000280  43				inc ebx
- 00000281  EB F4			jmp fillZero2
+ 00000281				skipMerge:
+ 00000281  43				inc ebx
+ 00000282  EB DE			jmp mergeLoop
+ 00000284				mergeDone:
+ 00000284  33 D2			xor edx, edx
+ 00000286  BB 00000000			mov ebx, 0
 
- 00000283				doneRow:
- 00000283  41				inc ecx
- 00000284  83 F9 04			cmp ecx, 4
- 00000287  0F 8C FFFFFF6F		jl rowLoop
+ 0000028B				secondShift:
+ 0000028B  83 FB 04			cmp ebx, 4
+ 0000028E  7D 0E			jge doneShift2
+ 00000290  8A 04 1F			mov al, [edi + ebx]
+ 00000293  3C 00			cmp al, 0
+ 00000295  74 04			je skipShift2
+ 00000297  88 04 17			mov [edi + edx], al
+ 0000029A  42				inc edx
+ 0000029B				skipShift2:
+ 0000029B  43				inc ebx
+ 0000029C  EB ED			jmp secondShift
+ 0000029E				doneShift2:
+ 0000029E  8B DA			mov ebx, edx
+ 000002A0				fillZero2:
+ 000002A0  83 FB 04			cmp ebx, 4
+ 000002A3  7D 07			jge doneRow
+ 000002A5  C6 04 1F 00			mov byte ptr [edi + ebx], 0
+ 000002A9  43				inc ebx
+ 000002AA  EB F4			jmp fillZero2
 
- 0000028D  61				popad
- 0000028E  C3				ret
- 0000028F			moveLeft endp
+ 000002AC				doneRow:
+ 000002AC  41				inc ecx
+ 000002AD  83 F9 04			cmp ecx, 4
+ 000002B0  0F 8C FFFFFF6F		jl rowLoop
+
+ 000002B6  61				popad
+ 000002B7  C3				ret
+ 000002B8			moveLeft endp
 
 
- 0000028F			rotate proc
- 0000028F  60				pushad
+ 000002B8			rotate proc
+ 000002B8  60				pushad
 					;edx will contain the number to indicate which rotation
 					;1 is 90 CW, 2 is 180, and 3 is 90 CWW
 
- 00000290  BE 00000000 R		mov esi, offset intGrid
- 00000295  BF 00000010 R		mov edi, offset tempGrid
- 0000029A  B9 00000000			mov ecx, 0
+ 000002B9  BE 00000000 R		mov esi, offset intGrid
+ 000002BE  BF 00000010 R		mov edi, offset tempGrid
+ 000002C3  B9 00000000			mov ecx, 0
 
- 0000029F				rotateLoop:
- 0000029F  83 F9 10			cmp ecx, 16
- 000002A2  7D 33			jge doneRotate
+ 000002C8				rotateLoop:
+ 000002C8  83 F9 10			cmp ecx, 16
+ 000002CB  7D 33			jge doneRotate
 
- 000002A4  83 FA 01			cmp edx, 1
- 000002A7  74 0C			je rot1
- 000002A9  83 FA 02			cmp edx, 2
- 000002AC  74 10			je rot2
- 000002AE  83 FA 03			cmp edx, 3
- 000002B1  74 14			je rot3
- 000002B3  EB 35			jmp doneCopy
+ 000002CD  83 FA 01			cmp edx, 1
+ 000002D0  74 0C			je rot1
+ 000002D2  83 FA 02			cmp edx, 2
+ 000002D5  74 10			je rot2
+ 000002D7  83 FA 03			cmp edx, 3
+ 000002DA  74 14			je rot3
+ 000002DC  EB 35			jmp doneCopy
 
- 000002B5				rot1:
- 000002B5  0F B6 99			movzx ebx, byte ptr [rot90CW + ecx]
-	   000000BB R
- 000002BC  EB 10			jmp cont
+ 000002DE				rot1:
+ 000002DE  0F B6 99			movzx ebx, byte ptr [rot90CW + ecx]
+	   000000BD R
+ 000002E5  EB 10			jmp cont
 
- 000002BE				rot2:
- 000002BE  0F B6 99			movzx ebx, byte ptr [rot180 +ecx]
-	   000000CB R
- 000002C5  EB 07			jmp cont
+ 000002E7				rot2:
+ 000002E7  0F B6 99			movzx ebx, byte ptr [rot180 +ecx]
+	   000000CD R
+ 000002EE  EB 07			jmp cont
 
- 000002C7				rot3:
- 000002C7  0F B6 99			movzx ebx, byte ptr [rot90CCW + ecx]
-	   000000DB R
+ 000002F0				rot3:
+ 000002F0  0F B6 99			movzx ebx, byte ptr [rot90CCW + ecx]
+	   000000DD R
 					
- 000002CE				cont:
- 000002CE  8A 04 1E			mov al, [esi + ebx]
- 000002D1  88 04 0F			mov [edi + ecx], al
- 000002D4				skipMap:
- 000002D4  41				inc ecx
- 000002D5  EB C8			jmp rotateLoop
- 000002D7				doneRotate:
+ 000002F7				cont:
+ 000002F7  8A 04 1E			mov al, [esi + ebx]
+ 000002FA  88 04 0F			mov [edi + ecx], al
+ 000002FD				skipMap:
+ 000002FD  41				inc ecx
+ 000002FE  EB C8			jmp rotateLoop
+ 00000300				doneRotate:
 
- 000002D7  B9 00000000			mov ecx, 0
- 000002DC				copyBack:
- 000002DC  83 F9 10			cmp ecx, 16
- 000002DF  7D 09			jge doneCopy
- 000002E1  8A 04 0F			mov al, [edi + ecx]
- 000002E4  88 04 0E			mov [esi + ecx], al
- 000002E7  41				inc ecx
- 000002E8  EB F2			jmp copyBack
+ 00000300  B9 00000000			mov ecx, 0
+ 00000305				copyBack:
+ 00000305  83 F9 10			cmp ecx, 16
+ 00000308  7D 09			jge doneCopy
+ 0000030A  8A 04 0F			mov al, [edi + ecx]
+ 0000030D  88 04 0E			mov [esi + ecx], al
+ 00000310  41				inc ecx
+ 00000311  EB F2			jmp copyBack
 
- 000002EA				doneCopy:
- 000002EA  61				popad
- 000002EB  C3				ret
- 000002EC			rotate endp
+ 00000313				doneCopy:
+ 00000313  61				popad
+ 00000314  C3				ret
+ 00000315			rotate endp
 
 
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35215.0	    12/04/25 13:35:01
+Microsoft (R) Macro Assembler Version 14.44.35215.0	    12/04/25 13:53:05
 main.asm						     Symbols 2 - 1
 
 
@@ -600,8 +631,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000111 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002EC Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000136 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000315 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -708,65 +739,69 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-checkGameOver  . . . . . . . . .	P Near	 0000011B _TEXT	Length= 0000006C Public STDCALL
-  checkEmpty . . . . . . . . . .	L Near	 00000128 _TEXT	
-  rowLoopH . . . . . . . . . . .	L Near	 00000137 _TEXT	
-  colLoopH . . . . . . . . . . .	L Near	 0000013E _TEXT	
-  colLoopV . . . . . . . . . . .	L Near	 00000159 _TEXT	
-  rowLoopV . . . . . . . . . . .	L Near	 00000160 _TEXT	
-  gameOver . . . . . . . . . . .	L Near	 00000176 _TEXT	
-  gameNotOver  . . . . . . . . .	L Near	 0000017E _TEXT	
-  back . . . . . . . . . . . . .	L Near	 00000186 _TEXT	
-getMove  . . . . . . . . . . . .	P Near	 00000187 _TEXT	Length= 0000006F Public STDCALL
-  getInput . . . . . . . . . . .	L Near	 00000188 _TEXT	
-  applyUp  . . . . . . . . . . .	L Near	 000001A1 _TEXT	
-  applyLeft  . . . . . . . . . .	L Near	 000001BC _TEXT	
-  applyRight . . . . . . . . . .	L Near	 000001C3 _TEXT	
-  applyDown  . . . . . . . . . .	L Near	 000001DE _TEXT	
-  doneMove . . . . . . . . . . .	L Near	 000001F4 _TEXT	
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000003E Public STDCALL
-  gameLoop . . . . . . . . . . .	L Near	 00000005 _TEXT	
-  gameLost . . . . . . . . . . .	L Near	 00000022 _TEXT	
-  endprogram . . . . . . . . . .	L Near	 00000037 _TEXT	
-moveLeft . . . . . . . . . . . .	P Near	 000001F6 _TEXT	Length= 00000099 Public STDCALL
-  rowLoop  . . . . . . . . . . .	L Near	 000001FC _TEXT	
-  firstShift . . . . . . . . . .	L Near	 00000213 _TEXT	
-  skipShift  . . . . . . . . . .	L Near	 00000223 _TEXT	
-  shiftDone  . . . . . . . . . .	L Near	 00000226 _TEXT	
-  fillZero . . . . . . . . . . .	L Near	 00000228 _TEXT	
-  doneZero . . . . . . . . . . .	L Near	 00000234 _TEXT	
-  mergeLoop  . . . . . . . . . .	L Near	 00000239 _TEXT	
-  skipMerge  . . . . . . . . . .	L Near	 00000258 _TEXT	
-  mergeDone  . . . . . . . . . .	L Near	 0000025B _TEXT	
-  secondShift  . . . . . . . . .	L Near	 00000262 _TEXT	
-  skipShift2 . . . . . . . . . .	L Near	 00000272 _TEXT	
-  doneShift2 . . . . . . . . . .	L Near	 00000275 _TEXT	
-  fillZero2  . . . . . . . . . .	L Near	 00000277 _TEXT	
-  doneRow  . . . . . . . . . . .	L Near	 00000283 _TEXT	
-newTile  . . . . . . . . . . . .	P Near	 0000003E _TEXT	Length= 0000005E Public STDCALL
-  countEmpty . . . . . . . . . .	L Near	 0000004D _TEXT	
-  notEmpty . . . . . . . . . . .	L Near	 00000055 _TEXT	
-  findEmpty  . . . . . . . . . .	L Near	 0000006A _TEXT	
-  skipCell . . . . . . . . . . .	L Near	 00000077 _TEXT	
-  placeTile  . . . . . . . . . .	L Near	 0000007A _TEXT	
-  makeFour . . . . . . . . . . .	L Near	 0000008D _TEXT	
-  storeTile  . . . . . . . . . .	L Near	 0000008F _TEXT	
-  boardFull  . . . . . . . . . .	L Near	 00000095 _TEXT	
-  done . . . . . . . . . . . . .	L Near	 0000009B _TEXT	
-printGrid  . . . . . . . . . . .	P Near	 0000009C _TEXT	Length= 0000007F Public STDCALL
-  printRow . . . . . . . . . . .	L Near	 000000B5 _TEXT	
-  printCell  . . . . . . . . . .	L Near	 000000D2 _TEXT	
+checkGameOver  . . . . . . . . .	P Near	 00000144 _TEXT	Length= 0000006C Public STDCALL
+  checkEmpty . . . . . . . . . .	L Near	 00000151 _TEXT	
+  rowLoopH . . . . . . . . . . .	L Near	 00000160 _TEXT	
+  colLoopH . . . . . . . . . . .	L Near	 00000167 _TEXT	
+  colLoopV . . . . . . . . . . .	L Near	 00000182 _TEXT	
+  rowLoopV . . . . . . . . . . .	L Near	 00000189 _TEXT	
+  gameOver . . . . . . . . . . .	L Near	 0000019F _TEXT	
+  gameNotOver  . . . . . . . . .	L Near	 000001A7 _TEXT	
+  back . . . . . . . . . . . . .	L Near	 000001AF _TEXT	
+clearGrid  . . . . . . . . . . .	P Near	 00000054 _TEXT	Length= 00000013 Public STDCALL
+  clearCell  . . . . . . . . . .	L Near	 0000005F _TEXT	
+getMove  . . . . . . . . . . . .	P Near	 000001B0 _TEXT	Length= 0000006F Public STDCALL
+  getInput . . . . . . . . . . .	L Near	 000001B1 _TEXT	
+  applyUp  . . . . . . . . . . .	L Near	 000001CA _TEXT	
+  applyLeft  . . . . . . . . . .	L Near	 000001E5 _TEXT	
+  applyRight . . . . . . . . . .	L Near	 000001EC _TEXT	
+  applyDown  . . . . . . . . . .	L Near	 00000207 _TEXT	
+  doneMove . . . . . . . . . . .	L Near	 0000021D _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000054 Public STDCALL
+  restart  . . . . . . . . . . .	L Near	 00000005 _TEXT	
+  gameLoop . . . . . . . . . . .	L Near	 0000000A _TEXT	
+  gameLost . . . . . . . . . . .	L Near	 00000027 _TEXT	
+  restartLoop  . . . . . . . . .	L Near	 00000042 _TEXT	
+  endprogram . . . . . . . . . .	L Near	 0000004D _TEXT	
+moveLeft . . . . . . . . . . . .	P Near	 0000021F _TEXT	Length= 00000099 Public STDCALL
+  rowLoop  . . . . . . . . . . .	L Near	 00000225 _TEXT	
+  firstShift . . . . . . . . . .	L Near	 0000023C _TEXT	
+  skipShift  . . . . . . . . . .	L Near	 0000024C _TEXT	
+  shiftDone  . . . . . . . . . .	L Near	 0000024F _TEXT	
+  fillZero . . . . . . . . . . .	L Near	 00000251 _TEXT	
+  doneZero . . . . . . . . . . .	L Near	 0000025D _TEXT	
+  mergeLoop  . . . . . . . . . .	L Near	 00000262 _TEXT	
+  skipMerge  . . . . . . . . . .	L Near	 00000281 _TEXT	
+  mergeDone  . . . . . . . . . .	L Near	 00000284 _TEXT	
+  secondShift  . . . . . . . . .	L Near	 0000028B _TEXT	
+  skipShift2 . . . . . . . . . .	L Near	 0000029B _TEXT	
+  doneShift2 . . . . . . . . . .	L Near	 0000029E _TEXT	
+  fillZero2  . . . . . . . . . .	L Near	 000002A0 _TEXT	
+  doneRow  . . . . . . . . . . .	L Near	 000002AC _TEXT	
+newTile  . . . . . . . . . . . .	P Near	 00000067 _TEXT	Length= 0000005E Public STDCALL
+  countEmpty . . . . . . . . . .	L Near	 00000076 _TEXT	
+  notEmpty . . . . . . . . . . .	L Near	 0000007E _TEXT	
+  findEmpty  . . . . . . . . . .	L Near	 00000093 _TEXT	
+  skipCell . . . . . . . . . . .	L Near	 000000A0 _TEXT	
+  placeTile  . . . . . . . . . .	L Near	 000000A3 _TEXT	
+  makeFour . . . . . . . . . . .	L Near	 000000B6 _TEXT	
+  storeTile  . . . . . . . . . .	L Near	 000000B8 _TEXT	
+  boardFull  . . . . . . . . . .	L Near	 000000BE _TEXT	
+  done . . . . . . . . . . . . .	L Near	 000000C4 _TEXT	
+printGrid  . . . . . . . . . . .	P Near	 000000C5 _TEXT	Length= 0000007F Public STDCALL
+  printRow . . . . . . . . . . .	L Near	 000000DE _TEXT	
+  printCell  . . . . . . . . . .	L Near	 000000FB _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
-rotate . . . . . . . . . . . . .	P Near	 0000028F _TEXT	Length= 0000005D Public STDCALL
-  rotateLoop . . . . . . . . . .	L Near	 0000029F _TEXT	
-  rot1 . . . . . . . . . . . . .	L Near	 000002B5 _TEXT	
-  rot2 . . . . . . . . . . . . .	L Near	 000002BE _TEXT	
-  rot3 . . . . . . . . . . . . .	L Near	 000002C7 _TEXT	
-  cont . . . . . . . . . . . . .	L Near	 000002CE _TEXT	
-  skipMap  . . . . . . . . . . .	L Near	 000002D4 _TEXT	
-  doneRotate . . . . . . . . . .	L Near	 000002D7 _TEXT	
-  copyBack . . . . . . . . . . .	L Near	 000002DC _TEXT	
-  doneCopy . . . . . . . . . . .	L Near	 000002EA _TEXT	
+rotate . . . . . . . . . . . . .	P Near	 000002B8 _TEXT	Length= 0000005D Public STDCALL
+  rotateLoop . . . . . . . . . .	L Near	 000002C8 _TEXT	
+  rot1 . . . . . . . . . . . . .	L Near	 000002DE _TEXT	
+  rot2 . . . . . . . . . . . . .	L Near	 000002E7 _TEXT	
+  rot3 . . . . . . . . . . . . .	L Near	 000002F0 _TEXT	
+  cont . . . . . . . . . . . . .	L Near	 000002F7 _TEXT	
+  skipMap  . . . . . . . . . . .	L Near	 000002FD _TEXT	
+  doneRotate . . . . . . . . . .	L Near	 00000300 _TEXT	
+  copyBack . . . . . . . . . . .	L Near	 00000305 _TEXT	
+  doneCopy . . . . . . . . . . .	L Near	 00000313 _TEXT	
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
@@ -988,6 +1023,8 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+endCol . . . . . . . . . . . . .	Byte	 000000BC _DATA	
+endRow . . . . . . . . . . . . .	Byte	 000000BB _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
@@ -999,12 +1036,12 @@ lightGray  . . . . . . . . . . .	Number	 00000007h
 lightGreen . . . . . . . . . . .	Number	 0000000Ah   
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
-lostMsg  . . . . . . . . . . . .	Byte	 000000EB _DATA	
+lostMsg  . . . . . . . . . . . .	Byte	 000000ED _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-rot180 . . . . . . . . . . . . .	Byte	 000000CB _DATA	
-rot90CCW . . . . . . . . . . . .	Byte	 000000DB _DATA	
-rot90CW  . . . . . . . . . . . .	Byte	 000000BB _DATA	
+rot180 . . . . . . . . . . . . .	Byte	 000000CD _DATA	
+rot90CCW . . . . . . . . . . . .	Byte	 000000DD _DATA	
+rot90CW  . . . . . . . . . . . .	Byte	 000000BD _DATA	
 startCol . . . . . . . . . . . .	Byte	 000000BA _DATA	
 startRow . . . . . . . . . . . .	Byte	 000000B9 _DATA	
 strRep . . . . . . . . . . . . .	Byte	 00000020 _DATA	
