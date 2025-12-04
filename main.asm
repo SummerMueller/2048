@@ -19,6 +19,10 @@ strRep byte "|       ",0,
 
 horLine byte "+-------+-------+-------+-------+",0
 verLine byte "|",0
+score dword 0
+scoreMsg byte "Score: ",0
+scoreRow byte 3
+scoreCol byte 30
 startRow byte 5
 startCol byte 40
 endRow byte 15
@@ -74,6 +78,8 @@ main ENDP
 
 clearGrid proc
 	pushad
+
+	mov dword ptr [score],0
 
 	mov esi, offset intGrid
 	mov ecx, 16
@@ -137,6 +143,8 @@ newTile proc
 
 	storeTile:
 	mov [esi + edi], al
+	movzx eax, al
+	add dword ptr [score], eax
 	popad
 	jmp done
 
@@ -193,6 +201,14 @@ printGrid proc
 	call gotoxy
 	mov edx, offset horLine
 	call writestring
+
+	mov dh, [scoreRow]
+	mov dl, [scoreCol]
+	call gotoxy
+	mov edx, offset scoreMsg
+	call writestring
+	mov eax, [score]
+	call writedec
 
 	popad
 	ret
