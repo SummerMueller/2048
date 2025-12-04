@@ -14,7 +14,8 @@ strRep byte "|       ",0,
 			"|  256  ",0,
 			"|  512  ",0,
 			"|  1024 ",0,
-			"|  2048 ",0
+			"|  2048 ",0,
+			"|  4096 ",0
 
 horLine byte "+-------+-------+-------+-------+",0
 verLine byte "|",0
@@ -42,14 +43,21 @@ main PROC
 	gameLoop:
 	call newTile
 	call printGrid
-	; todo: add check for game over or win
-	;cmp ebx, 1
-	;je gameLost
+	xor ebx, ebx
+	call checkGameOver
+	cmp ebx, 1
+	je gameLost
 	call getMove
 	jmp gameLoop
 
 	gameLost:
-
+	inc dh
+	inc dh
+	call gotoxy
+	push edx
+	mov edx, offset lostMsg
+	call writestring
+	pop edx
 
 	endprogram:
 	exit
@@ -164,7 +172,15 @@ printGrid proc
 
 	popad
 	ret
-printGrid ENDP
+printGrid endp
+
+
+checkGameOver proc
+	pushad
+
+	popad
+	ret
+checkGameOver endp
 
 
 getMove proc
