@@ -28,7 +28,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
+    <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -71,6 +71,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -83,6 +86,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\summe\Florida Tech\Fall 2025 Courses\CSE 3120 Comp Arch and Assembly\Irvine</AdditionalLibraryDirectories>
       <AdditionalDependencies>Irvine32.lib; kernel32.lib; user32.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>no</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImageHasSafeExceptionHandlers>no</ImageHasSafeExceptionHandlers>
     </Link>
     <MASM>
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -90,6 +96,8 @@
     <MASM>
       <IncludePaths>C:\Users\summe\Florida Tech\Fall 2025 Courses\CSE 3120 Comp Arch and Assembly\Irvine</IncludePaths>
       <UseSafeExceptionHandlers>false</UseSafeExceptionHandlers>
+      <EnableAssemblyGeneratedCodeListing>true</EnableAssemblyGeneratedCodeListing>
+      <AssembledCodeListingFile>$(ProjectName).lst</AssembledCodeListingFile>
     </MASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,7 +124,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\summe\Florida Tech\Fall 2025 Courses\CSE 3120 Comp Arch and Assembly\Irvine</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Irvine32.lib; kernel32.lib; user32.lib</AdditionalDependencies>
     </Link>
+    <MASM>
+      <IncludePaths>C:\Users\summe\Florida Tech\Fall 2025 Courses\CSE 3120 Comp Arch and Assembly\Irvine</IncludePaths>
+    </MASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

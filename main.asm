@@ -172,7 +172,7 @@ getMove proc
 
 	getInput:  ;loops until the input is wasd or arrowkeys
 	xor eax, eax
-	call readkey
+	call readchar
 	;cmp al, 0
 	;je arrowKeys
 	cmp al, 119
