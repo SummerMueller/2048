@@ -143,6 +143,7 @@ newTile proc
 
 	storeTile:
 	mov [esi + edi], al
+	shl al, 1
 	movzx eax, al
 	add dword ptr [score], eax
 	popad
