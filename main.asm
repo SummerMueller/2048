@@ -206,6 +206,21 @@ checkGameOver proc
 	cmp edx, 16
 	jne rowLoopH
 
+	;checks if vertical merges can be made
+	mov edx, 0
+	colLoopV:
+	mov ecx, 3
+	mov edi, edx
+	rowLoopV:
+	mov al, [esi + edi]
+	mov bl, [esi + edi + 1]
+	cmp al, bl
+	je gameNotOver
+	add edi, 4
+	loop rowLoopV
+	inc edx
+	cmp edx, 4
+	jne colLoopV
 
 	gameOver:
 	popad
