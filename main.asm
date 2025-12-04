@@ -182,18 +182,35 @@ checkGameOver proc
 	mov ecx, 16
 	xor edi, edi
 
-	countEmpty:
+	;checks if the grid has any open cells
+	checkEmpty:
 	mov al, [esi + edi]
 	cmp al, 0
 	je gameNotOver
 	inc edi
-	loop countEmpty
+	loop checkEmpty
+
+	;checks if horizontal merges can be made
+	mov edx, 0
+	rowLoopH:
+	mov ecx, 3
+	mov edi, edx
+	colLoopH:
+	mov al, [esi + edi]
+	mov bl, [esi + edi + 1]
+	cmp al, bl
+	je gameNotOver
+	inc edi
+	loop ColLoopH
+	add edx, 4
+	cmp edx, 16
+	jne rowLoopH
+
 
 	gameOver:
 	popad
 	mov ebx, 1
 	jmp back
-
 
 	gameNotOver:
 	popad 
