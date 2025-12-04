@@ -173,8 +173,6 @@ getMove proc
 	getInput:  ;loops until the input is wasd or arrowkeys
 	xor eax, eax
 	call readchar
-	;cmp al, 0
-	;je arrowKeys
 	cmp al, 119
 	je applyUp
 	cmp al, 97
@@ -184,17 +182,6 @@ getMove proc
 	cmp al, 100
 	je applyDown
 	jmp getInput
-	;arrowKeys:
-	; call readkey
-	;cmp al, 72
-	;je applyUp
-	cmp al, 75
-	;je applyLeft
-	;cmp al, 77
-	;je applyRight
-	;cmp al, 80
-	;je applyDown
-	;jmp getInput
 
 	applyUp:
 	mov edx, 3
