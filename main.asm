@@ -178,7 +178,29 @@ printGrid endp
 checkGameOver proc
 	pushad
 
+	mov esi, offset intGrid
+	mov ecx, 16
+	xor edi, edi
+
+	countEmpty:
+	mov al, [esi + edi]
+	cmp al, 0
+	je gameNotOver
+	inc edi
+	loop countEmpty
+
+	gameOver:
 	popad
+	mov ebx, 1
+	jmp back
+
+
+	gameNotOver:
+	popad 
+	mov ebx, 0
+	jmp back
+
+	back:
 	ret
 checkGameOver endp
 
