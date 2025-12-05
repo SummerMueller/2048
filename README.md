@@ -4,7 +4,7 @@ Welcome to my version of 2048 in Assembly Language! In this project, I tried to 
 ## Gameplay
 
 ### Overview
-If you're unfamiliar with how 2048 works, the environment is a 4x4 grid containing a total of 16 individual cells that may or may not contain numbers at a given time. A player wins when they achieve the 2048 block and lose if the board is full and there are no available moves left.
+If you're unfamiliar with how 2048 works, the environment is a 4x4 grid containing a total of 16 individual cells that may or may not contain numbers at a given time. A player wins when they achieve the 2048 block and loses if the board is full and there are no available moves left.
 ### Shifts
 The player interacts with the environment by using wasd commands to indicate a desired shift in that particular direction. For example, pressing 'a' will trigger a left shift. During a shift, all numbers are pushed toward the corresonding wall as far as they can move without crashing into one another. 
 ### Merges
@@ -15,4 +15,7 @@ During every shift, a new block will spawn randomly in an empty cell. The new bl
 In my version, the score is computed as the complete of sum of all blocks in the grid at the current state.
 ### Goal and Game Over
 While traditionally the goal is to reach the 2048 block, it is possible to go much further. Therefore, the game allows you to continue playing so you can improve your score. The game only terminates when the grid is completely full and there are no more available merges to free up space. In that case, the player is effectively out of moves. The program will then prompt the user if they'd like to play again.
+
 ## Installation and Usage
+### 1. Ensure you have Visual Studio downloaded.
+### 2. 
