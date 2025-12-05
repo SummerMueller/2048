@@ -17,5 +17,13 @@ In my version, the score is computed as the complete of sum of all blocks in the
 While traditionally the goal is to reach the 2048 block, it is possible to go much further. Therefore, the game allows you to continue playing so you can improve your score. The game only terminates when the grid is completely full and there are no more available merges to free up space. In that case, the player is effectively out of moves. The program will then prompt the user if they'd like to play again.
 
 ## Installation and Usage
-### 1. Ensure you have Visual Studio downloaded.
-### 2. 
+### 1. Downloads
+Ensure you have Visual Studio downloaded and linked with the Irvine library. For information on how to download and configure it, visit this link: https://github.com/meixinchoy/Irvine-library.git.
+### 2. Clone this repository and open in Visual Studio
+This can be done directly in Github or from the command line.
+### 3. Additional configurations
+Go to **Build** -> **Configuration manager...** and ensure that "Win32" is selected under **Active Solution Platform**. If not, select **new** and find "Win32". 
+### 4. Compilation
+To compile, select **Build Solution** from the Build menu or press **F7**.
+### 5. Usage
+To run the game, select Start Debugging from the **Debug** menu or press **F5**. The game controls use wasd for shifting.
